@@ -10,7 +10,8 @@
     "start": "node dist/index.js",
     "migrate:make": " tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:make -x ts",
     "migrate": "npx ts-node knex migrate:latest --knexfile knexfile.ts",
-    "migrate:latest": "tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:latest "
+    "migrate:latest": "tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:latest ",
+    "migrate:rollback": "tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:rollback "
   },
   "keywords": [],
   "author": "",

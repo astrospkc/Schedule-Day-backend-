@@ -61,8 +61,8 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        let user = await dbClient.select("email").from("users").where({ email });
-
+        let user = await dbClient.select("email", "password").from("users").where({ email });
+        console.log(user)
         if (user.length < 0) {
             success = false;
             return res
@@ -82,16 +82,8 @@ const login = async (req, res) => {
                 id: user[0].id,
             },
         };
-
-        console.log("login");
-
-        // const authtoken = jwt.sign({ data }, JWT_SECRET, { expiresIn: "1h" });
         const authtoken = jwt.sign(data, JWT_SECRET);
-
         success = true;
-        // console.log("req.headers: ", req.headers);
-        console.log(success, authtoken);
-
         res.json({ success, authtoken });
         // }
     } catch (error) {
@@ -101,72 +93,20 @@ const login = async (req, res) => {
 }
 
 
-// // ROUTE 2: get user details, POST : "api/auth/getuser" Login required
-// router.get("/getuser", fetchuser, async (req, res) => {
-//     try {
-//         const userId = req.user.id;
-//         console.log("user id: ", userId);
-//         const user = await User.findById(userId).select("-password");
-//         res.send(user);
-//     } catch (error) {
-//         console.error(error.message);
-//         res.status(500).send("Internal error occurred");
-//     }
-// });
+const getUserInfo = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const user = await dbClient.select("*").from("users").where({ id: user_id });
+        res.send(user);
+    } catch (error) {
+        res.status(500).send("Internal error occurred");
+    }
+}
 
-// // ROUTE 3: get user details, POST : "api/auth/getuser" Login required
-// router.get("/getuser/:userid", fetchuser, async (req, res) => {
-//     try {
-//         // const userId = req.user.id;
-//         const userId = req.params.userid;
-//         const user = await User.findById(userId).select("password");
-//         res.send(user);
-//     } catch (error) {
-//         console.error(error.message);
-//         res.status(500).send("Internal error occurred");
-//     }
-// });
 
-// router.get("/getalluser", async (req, res) => {
-//     try {
-//         const users = await User.find();
-//         console.log("user: ", users);
-//         res.json(users);
-//     } catch (error) {
-//         console.error(error.message);
-//         res.status(500).send("Internal error occurred");
-//     }
-// });
-
-// const deleteUser = async (req, res) => {
-//     try {
-//         const { user_id } = req.params;
-//         // delete post, comments, bookmark, community, journal
-//         await Journal.deleteMany({ user: user_id });
-//         await Bookmark.deleteMany({ userId: user_id });
-//         await Comment.deleteMany({ createdBy: user_id });
-//         await Community.deleteMany({ createdBy: user_id });
-//         await Feedback.deleteMany({ userId: user_id });
-//         await Like.deleteMany({ userId: user_id });
-//         await Post.deleteMany({ createdBy: user_id });
-//         await User.findByIdAndDelete(user_id);
-//         res.json("user is deleted");
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// };
-
-// const deleteAllUser = async (req, res) => {
-//     try {
-//         const user = await User.deleteMany();
-//         res.json(user);
-//     } catch (error) {
-//         console.error(error.message);
-//         res.status(500).send("Internal error eccurred");
-//     }
-// };
 router.post("/register", register);
 router.post("/login", login);
+router.get("/getuserinfo", fetchuser, getUserInfo);
 
 
 export default router;

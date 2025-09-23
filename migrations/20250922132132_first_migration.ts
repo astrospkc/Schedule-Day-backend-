@@ -9,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
             table.string("name")
             table.string("email")
             table.string("password")
-            table.timestamps();
+            table.timestamps(true, true)
         })
         .createTable("tasks", function (table) {
             table.increments();
@@ -20,18 +20,21 @@ export async function up(knex: Knex): Promise<void> {
             table.integer("user_id").references("id").inTable("users");
             table.boolean("is_recurring").defaultTo(false)
             table.dateTime("next_execution_time")
-            table.timestamps();
+            table.timestamps(true, true)
+
         })
         .createTable("task_history", function (table) {
             table.increments();
             table.integer("task_id").references("id").inTable("tasks");
             table.string("status")
+            table.timestamps(true, true)
+
         })
 }
 
 
 export async function down(knex: Knex): Promise<void> {
-    return knex.schema.dropTable('products').dropTable('users');
+    return knex.schema.dropTable('task_history').dropTable("tasks").dropTable("users");
 }
 
 

@@ -2,12 +2,14 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-const JWT_secret = process.env.JWT_TOKE || "any_secret"
+const JWT_secret = process.env.JWT_TOKEN || "any_secret"
+
 
 const fetchuser = async (req, res, next) => {
     //get the user from jwttoken and add id to req object
 
     const token = req.headers["authorization"]?.split(" ")[1];
+    // console.log("token", token)
 
     try {
         if (!token) {
@@ -20,6 +22,7 @@ const fetchuser = async (req, res, next) => {
         }
 
         const data = jwt.verify(token, JWT_secret);
+
         req.user = data.user;
         next();
 
