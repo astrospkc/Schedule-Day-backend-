@@ -10,17 +10,14 @@ import dbClient from "../db/index.ts";
 const router = express.Router();
 // const { body, validationResult } = require("express-validator");
 const JWT_SECRET = process.env.JWT_TOKEN || "any_secret"
-console.log("jwt secret: ", JWT_SECRET);
 
 //create a User using: POST "/api/auth/createuser". No login required
 
-const register = async (req, res) => {
+const register = async (req: express.Request, res: express.Response) => {
     // console.log(req.body);
     let success = false;
     try {
         let user = await dbClient.select("email").from("users").where({ email: req.body.email });
-        console.log("user: ", user)
-
         if (user.length < 0) {
             return res.status(400).json({
                 success,
@@ -36,15 +33,17 @@ const register = async (req, res) => {
             name: req.body.name,
             email: req.body.email,
             password: secPass,
-        })
+        }).returning("*");
 
         const data = {
             user: {
-                id: user.id,
+                id: user[0].id,
+                email: user[0].email
             },
         };
 
         // const authtoken = jwt.sign({ data }, JWT_SECRET, { expiresIn: "1h" });
+
         const authtoken = jwt.sign(data, JWT_SECRET);
         success = true;
 
@@ -56,12 +55,12 @@ const register = async (req, res) => {
 }
 
 
-const login = async (req, res) => {
+const login = async (req: express.Request, res: express.Response) => {
     let success = false;
     const { email, password } = req.body;
 
     try {
-        let user = await dbClient.select("email", "password").from("users").where({ email });
+        let user = await dbClient.select("id", "email", "password").from("users").where({ email });
         console.log(user)
         if (user.length < 0) {
             success = false;
@@ -80,13 +79,16 @@ const login = async (req, res) => {
         const data = {
             user: {
                 id: user[0].id,
+                email: user[0].email
             },
         };
+        console.log("jwt secret in auth: ", JWT_SECRET)
         const authtoken = jwt.sign(data, JWT_SECRET);
         success = true;
         res.json({ success, authtoken });
         // }
     } catch (error) {
+        console.log("error: ", error)
         console.error(error.message);
         res.status(500).send("Internal error occurred", error.message);
     }

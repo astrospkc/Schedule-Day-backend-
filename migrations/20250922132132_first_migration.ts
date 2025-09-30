@@ -19,6 +19,7 @@ export async function up(knex: Knex): Promise<void> {
             table.dateTime("end_date");
             table.integer("user_id").references("id").inTable("users");
             table.boolean("is_recurring").defaultTo(false)
+            table.string("recurrence_day") // Daily, weekly , monthly, one-time=0, daily=1, weekly=7, monthly=30, yearly=365
             table.dateTime("next_execution_time")
             table.timestamps(true, true)
 
@@ -28,7 +29,6 @@ export async function up(knex: Knex): Promise<void> {
             table.integer("task_id").references("id").inTable("tasks");
             table.string("status")
             table.timestamps(true, true)
-
         })
 }
 

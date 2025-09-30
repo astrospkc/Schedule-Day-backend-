@@ -1,17 +1,20 @@
+import express from 'express';
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-dotenv.config();
+const env = process.env.NODE_ENV || 'local'
 
-const JWT_secret = process.env.JWT_TOKEN || "any_secret"
+dotenv.config({ path: `.env.${env}` });
+
+const JWT_secret = process.env.JWT_TOKEN || ""
+// console.log("jwt secret: ", JWT_secret);
 
 
-const fetchuser = async (req, res, next) => {
+const fetchuser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     //get the user from jwttoken and add id to req object
-
-    const token = req.headers["authorization"]?.split(" ")[1];
-    // console.log("token", token)
-
+    console.log("going through me")
     try {
+        const token = req.headers["authorization"]?.split(" ")[1];
+        console.log("token", token)
         if (!token) {
             res
                 .status(401)
@@ -20,8 +23,9 @@ const fetchuser = async (req, res, next) => {
         if (!JWT_secret) {
             res.status(401).send({ error: "jwt secret not found" })
         }
-
+        console.log("jwt secret: ", JWT_secret)
         const data = jwt.verify(token, JWT_secret);
+        console.log("data: ", data)
 
         req.user = data.user;
         next();

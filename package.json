@@ -11,23 +11,29 @@
     "migrate:make": " tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:make -x ts",
     "migrate": "npx ts-node knex migrate:latest --knexfile knexfile.ts",
     "migrate:latest": "tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:latest ",
-    "migrate:rollback": "tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:rollback "
+    "migrate:rollback": "tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:rollback ",
+    "worker": "nodemon --watch src --exec tsx src/queues/worker/worker.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "bullmq": "^5.58.7",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "ioredis": "^5.8.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.18.3",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^24.5.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
