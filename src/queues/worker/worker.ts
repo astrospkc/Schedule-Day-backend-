@@ -10,29 +10,22 @@ const worker = new Worker(
     "emailQueue",
     async (job) => {
         console.log(`Processing email job for ${job.data.email}`);
-        console.log("Job ID:", job.data.jobId);
-        const date = new Date()
+        console.log("Job ID:", job.data.jobId, "Task History ID:", job.data.taskHistoryId);
 
         try {
             // Update THIS execution's task_history record as completed
-            if (job.data.jobId) {
-                let taskHistory = await dbClient("task_history").where({ task_id: job.data.jobId, status: "pending" }).first()
-                console.log("task history: ", taskHistory)
-                if (taskHistory) {
-                    console.log("taskHistory.scheduled_for == date:", taskHistory.scheduled_for, " ", date, " ", taskHistory.scheduled_for == date)
-                    if (taskHistory.scheduled_for == date) {
-                        await dbClient("task_history")
-                            .where({ id: taskHistory.id })
-                            .update({
-                                status: "completed",
-                            });
-                    }
-
-                }
+            if (job.data.taskHistoryId) {
+                await dbClient("task_history")
+                    .where({ id: job.data.taskHistoryId })
+                    .update({
+                        status: "completed",
+                        completed_at: new Date()
+                    });
+                console.log(`✅ Marked task_history ${job.data.taskHistoryId} as completed`);
             }
 
             // Send email (your actual work)
-            console.log(`Sending email to ${job.data.email}`);
+            console.log(`📧 Sending email to ${job.data.email}`);
             // await sendEmail(job.data.email, ...);
 
             // Fetch task details
@@ -42,7 +35,7 @@ const worker = new Worker(
                 .where({ id: job.data.jobId });
 
             if (jobDoc.length === 0) {
-                console.log("Task not found");
+                console.log("⚠️ Task not found");
                 return;
             }
 
@@ -56,11 +49,11 @@ const worker = new Worker(
                 endDate.setHours(0, 0, 0, 0);
 
                 // Check if we've reached the end date
-                if (endDate <= today) {
+                if (endDate < today) {  // Use < if you want tasks to run ON end date
                     await dbClient("tasks")
                         .where({ id: job.data.jobId })
                         .update({ status: "not active" });
-                    console.log("Recurring task completed - reached end date");
+                    console.log("🏁 Recurring task completed - reached end date");
                     return;
                 }
 
@@ -71,11 +64,10 @@ const worker = new Worker(
                 switch (task.recurrence_day) {
                     case "custom":
                         if (!task.custom_days || task.custom_days.length === 0) {
-                            console.error("Custom recurrence requires custom_days");
+                            console.error("❌ Custom recurrence requires custom_days");
                             return;
                         }
                         // TODO: Implement custom days logic
-                        // nextExecutionTime = calculateNextCustomDay(currentExecution, task.custom_days);
                         break;
 
                     case "daily":
@@ -99,18 +91,21 @@ const worker = new Worker(
                         break;
 
                     default:
-                        console.error("Invalid recurrence_day:", task.recurrence_day);
+                        console.error("❌ Invalid recurrence_day:", task.recurrence_day);
                         return;
                 }
 
                 if (!nextExecutionTime) return;
 
-                // Don't schedule if next execution is past end date
-                if (nextExecutionTime > endDate) {
+                // Check if next execution would be past end date
+                const nextExecDate = new Date(nextExecutionTime);
+                nextExecDate.setHours(0, 0, 0, 0);
+
+                if (nextExecDate > endDate) {
                     await dbClient("tasks")
                         .where({ id: job.data.jobId })
                         .update({ status: "not active" });
-                    console.log("Next execution would be past end date - completing task");
+                    console.log("🏁 Next execution would be past end date - completing task");
                     return;
                 }
 
@@ -124,52 +119,60 @@ const worker = new Worker(
                     .insert({
                         task_id: job.data.jobId,
                         status: "pending",
-                        scheduled_for: nextExecutionTime
+                        scheduled_for: nextExecutionTime,
+                        created_at: new Date()
                     })
                     .returning("id");
 
-                // Schedule the next job with delay
-                const tenMinutesInMs = 10 * 60 * 1000; // 10 minutes in milliseconds
+                console.log(`📝 Created task_history record ${taskHistoryRecord.id} for next execution`);
+
+                // Schedule the next job with delay (10 minutes before nextExecutionTime)
+                const tenMinutesInMs = 10 * 60 * 1000;
                 const delayMs = nextExecutionTime.getTime() - Date.now() - tenMinutesInMs;
+
+                if (delayMs < 0) {
+                    console.warn("⚠️ Next execution time is less than 10 minutes away or in the past!");
+                }
 
                 await emailQueue.add(
                     task.title,
                     {
                         jobId: job.data.jobId,
                         email: job.data.email,
-                        taskHistoryId: taskHistoryRecord.id // Pass the new task_history ID
+                        taskHistoryId: taskHistoryRecord.id  // ← Pass the new task_history ID!
                     },
                     {
-                        delay: Math.max(0, delayMs), // Ensure non-negative delay
-                        jobId: `task-${job.data.jobId}-${nextExecutionTime.getTime()}` // Prevent duplicates
+                        delay: Math.max(0, delayMs),
+                        jobId: `task-${job.data.jobId}-${nextExecutionTime.getTime()}`
                     }
                 );
 
-                console.log(`Next execution scheduled for ${nextExecutionTime.toISOString()}`);
+                console.log(`⏰ Next execution scheduled for ${nextExecutionTime.toISOString()}`);
 
             } else {
-                // Non-recurring task - mark as completed
+                // Non-recurring task - mark as not active
                 await dbClient("tasks")
                     .where({ id: job.data.jobId })
                     .update({ status: "not active" });
 
-                console.log("One-time task completed");
+                console.log("✅ One-time task completed");
             }
 
         } catch (error) {
-            console.error("Error processing job:", error);
+            console.error("❌ Error processing job:", error);
 
-            // Update task_history as failed
-            if (job.data.jobId) {
+            // Update task_history as failed (use correct ID!)
+            if (job.data.taskHistoryId) {
                 await dbClient("task_history")
-                    .where({ id: job.data.jobId })
+                    .where({ id: job.data.taskHistoryId })
                     .update({
                         status: "failed",
-                        error_message: error.message
+                        error_message: error.message,
+                        failed_at: new Date()
                     });
             }
 
-            throw error; // Re-throw so BullMQ can handle retries
+            throw error;
         }
     },
     {

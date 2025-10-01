@@ -23,7 +23,11 @@ const createTask = async (req: express.Request, res: express.Response) => {
         const { title, start_date, end_date, recurrence_day, custom_days }: Task = req.body;
 
         // Convert dates from string → Date object
-        const startDate = new Date(start_date);
+        let startDate
+        if (new Date(start_date) <= new Date() == true) {
+            return res.status(400).send("Start date or time must be in the future");
+        }
+        startDate = new Date(start_date);
         const endDate = new Date(end_date);
         console.log("start date and end date: ", startDate, "  ", endDate)
 
@@ -76,6 +80,7 @@ const createTask = async (req: express.Request, res: express.Response) => {
                 is_recurring: isRecurring,
                 recurrence_day,
                 next_execution_time: startDate,
+
             })
             .returning("*");
 
@@ -102,6 +107,27 @@ const createTask = async (req: express.Request, res: express.Response) => {
 };
 
 
+const GetAllJobInfo = async (req: express.Request, res: express.Response) => {
+    try {
+        const waitingJobs = await emailQueue.getWaiting();      // Jobs waiting to be processed
+        const activeJobs = await emailQueue.getActive();        // Jobs currently being processed
+        const completedJobs = await emailQueue.getCompleted();  // Successfully completed jobs
+        const failedJobs = await emailQueue.getFailed();        // Failed jobs
+        const delayedJobs = await emailQueue.getDelayed();      // Scheduled/delayed jobs
+
+        console.log('Waiting:', waitingJobs.length);
+        console.log('Active:', activeJobs.length);
+        console.log('Completed:', completedJobs.length);
+        console.log('Failed:', failedJobs.length);
+        console.log('Delayed:', delayedJobs.length);
+        res.status(200).json({ waitingJobs, activeJobs, completedJobs, failedJobs, delayedJobs });
+    } catch {
+        console.error("Error creating task:", error);
+        return res.status(500).send("Internal error occurred");
+    }
+}
+
 router.post("/createtask", fetchuser, createTask)
+router.get("/jobInfo", fetchuser, GetAllJobInfo)
 
 export default router
