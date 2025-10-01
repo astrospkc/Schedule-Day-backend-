@@ -2,6 +2,7 @@ import express from "express"
 import dbClient from "../db/index.ts"
 import { emailQueue } from "../queues/queues.ts"
 import fetchuser from "../middleware/authmiddlleware.ts"
+import { create } from "domain"
 // 2025 -09 - 22 16: 47: 34.064941 +00
 
 interface Task {
@@ -24,6 +25,7 @@ const createTask = async (req: express.Request, res: express.Response) => {
         // Convert dates from string → Date object
         const startDate = new Date(start_date);
         const endDate = new Date(end_date);
+        console.log("start date and end date: ", startDate, "  ", endDate)
 
         let nextExecutionTime: Date | null = null;
         let isRecurring = false;
@@ -67,13 +69,13 @@ const createTask = async (req: express.Request, res: express.Response) => {
         const [createdTask] = await dbClient("tasks")
             .insert({
                 title,
-                status: "pending",
+                status: "active",
                 start_date: startDate,
                 end_date: endDate,
                 user_id,
                 is_recurring: isRecurring,
                 recurrence_day,
-                next_execution_time: nextExecutionTime,
+                next_execution_time: startDate,
             })
             .returning("*");
 
@@ -84,6 +86,11 @@ const createTask = async (req: express.Request, res: express.Response) => {
             jobId: createdTask.id,
             email: req.user.email,
         });
+        await dbClient("task_history").insert({
+            task_id: createdTask.id,
+            status: "pending",
+            scheduled_for: startDate
+        })
 
         return res
             .status(201)

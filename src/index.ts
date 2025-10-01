@@ -8,7 +8,10 @@ const env = process.env.NODE_ENV || 'local'
 
 dotenv.config({ path: `.env.${env}` });
 
-
+const date = new Date();
+const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+const nextDate = new Date(istDate)
+console.log("ist date: ", istDate, "next date: ", nextDate, "date now: ", Date.now())
 const PORT = 7000
 const app = express()
 app.use(express.json())

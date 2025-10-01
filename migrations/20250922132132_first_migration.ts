@@ -14,7 +14,7 @@ export async function up(knex: Knex): Promise<void> {
         .createTable("tasks", function (table) {
             table.increments();
             table.string("title");
-            table.string("status");
+            table.string("status"); //active , notactive
             table.dateTime("start_date");
             table.dateTime("end_date");
             table.integer("user_id").references("id").inTable("users");
@@ -27,8 +27,9 @@ export async function up(knex: Knex): Promise<void> {
         .createTable("task_history", function (table) {
             table.increments();
             table.integer("task_id").references("id").inTable("tasks");
-            table.string("status")
-            table.timestamps(true, true)
+            table.string("status") //pending , completed
+            table.dateTime("scheduled_for")
+            table.timestamps(true, true) // scheduled_for -> field insert later
         })
 }
 
