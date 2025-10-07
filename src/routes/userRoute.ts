@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import fetchuser from "../middleware/authmiddlleware.ts";
 import dbClient from "../db/index.ts";
+import { welcomeEmailQueue } from "../queues/queues.ts";
 
 
 const router = express.Router();
@@ -46,6 +47,20 @@ const register = async (req: express.Request, res: express.Response) => {
 
         const authtoken = jwt.sign(data, JWT_SECRET);
         success = true;
+
+        // set up welcome email queue
+        await welcomeEmailQueue.add("welcomeEmail", {
+            email: user[0].email,
+            name: user[0].name,
+            welcomeMessage: `Hello ${user[0].name}, welcome to our platform! We're thrilled to have you on board. Start exploring all the amazing features we have to offer.`
+        }, {
+            delay: 0,
+            attempts: 3, // Retry up to 3 times if sending fails
+            backoff: {
+                type: 'exponential',
+                delay: 1000 // 1 second delay before first retry
+            }
+        });
 
         res.json({ success, authtoken });
     } catch (error) {

@@ -85,12 +85,18 @@ const createTask = async (req: express.Request, res: express.Response) => {
             .returning("*");
 
         console.log("created task:", createdTask);
-
+        const tenMinuteInMs = 10 * 60 * 1000;
+        const delayMs = startDate.getTime() - Date.now() - tenMinuteInMs
         // If you want to enqueue:
         await emailQueue.add(title, {
             jobId: createdTask.id,
             email: req.user.email,
-        });
+            taskHistoryId: createdTask.id
+        },
+            {
+                delay: Math.max(0, delayMs),
+                jobId: `task-${createdTask.id}-${startDate.getTime()}`
+            });
         await dbClient("task_history").insert({
             task_id: createdTask.id,
             status: "pending",

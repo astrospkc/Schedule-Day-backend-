@@ -20,6 +20,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.58.7",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "ioredis": "^5.8.0",
@@ -28,9 +29,11 @@
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.3",
     "nodemon": "^3.1.10",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "resend": "^6.1.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.97",

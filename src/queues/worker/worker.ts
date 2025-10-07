@@ -3,6 +3,7 @@ import { Worker } from 'bullmq';
 import redisConnection from '../../db/redisConnection.ts';
 import dbClient from '../../db/index.ts';
 import { emailQueue } from '../queues.ts';
+import { welcomeEmailWorkerInstance } from './welcomeEmailWorker.js';
 // import dbClient from '../../db/index.ts';
 
 // Create a new connection in every instance
@@ -19,7 +20,6 @@ const worker = new Worker(
                     .where({ id: job.data.taskHistoryId })
                     .update({
                         status: "completed",
-                        completed_at: new Date()
                     });
                 console.log(`✅ Marked task_history ${job.data.taskHistoryId} as completed`);
             }
@@ -49,7 +49,7 @@ const worker = new Worker(
                 endDate.setHours(0, 0, 0, 0);
 
                 // Check if we've reached the end date
-                if (endDate < today) {  // Use < if you want tasks to run ON end date
+                if (endDate <= today) {  // Use < if you want tasks to run ON end date
                     await dbClient("tasks")
                         .where({ id: job.data.jobId })
                         .update({ status: "not active" });
@@ -202,3 +202,7 @@ worker.on("failed", (job, err) => {
         })();
     }
 });
+
+
+// The welcome email worker is automatically started when imported
+// No need to call .run() as BullMQ workers start automatically
