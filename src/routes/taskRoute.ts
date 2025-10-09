@@ -3,7 +3,9 @@ import dbClient from "../db/index.ts"
 import { emailQueue } from "../queues/queues.ts"
 import fetchuser from "../middleware/authmiddlleware.ts"
 import { create } from "domain"
+
 // 2025 -09 - 22 16: 47: 34.064941 +00
+import { resend } from "../queues/worker/welcomeEmailWorker.ts"
 
 interface Task {
     title: string
@@ -84,13 +86,15 @@ const createTask = async (req: express.Request, res: express.Response) => {
             })
             .returning("*");
 
-        console.log("created task:", createdTask);
+
         const tenMinuteInMs = 10 * 60 * 1000;
         const delayMs = startDate.getTime() - Date.now() - tenMinuteInMs
         // If you want to enqueue:
         await emailQueue.add(title, {
             jobId: createdTask.id,
             email: req.user.email,
+            title: title,
+            startDate: startDate,
             taskHistoryId: createdTask.id
         },
             {
@@ -102,6 +106,25 @@ const createTask = async (req: express.Request, res: express.Response) => {
             status: "pending",
             scheduled_for: startDate
         })
+
+        // sending an email for scheduling a task
+        const { data, error } = await resend.emails.send({
+            from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}>`,
+            to: [req.user.email],
+            subject: `Task Scheduled for - ${title}`,
+            html: `
+                <h1>Task Scheduled for - ${title}</h1>
+                <p>Task scheduled successfully</p>
+                <p>Task will be executed at ${startDate}</p>
+                <p>Best regards,<br/>The Team</p>
+            `
+        })
+
+        if (error) {
+            console.error("Error sending scheduling task email:", error)
+            throw error;
+        }
+
 
         return res
             .status(201)

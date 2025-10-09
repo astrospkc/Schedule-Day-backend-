@@ -5,7 +5,7 @@ import dbClient from '../../db/index.ts';
 import { emailQueue } from '../queues.ts';
 import { welcomeEmailWorkerInstance } from './welcomeEmailWorker.js';
 // import dbClient from '../../db/index.ts';
-
+import { resend } from "../worker/welcomeEmailWorker.ts"
 // Create a new connection in every instance
 const worker = new Worker(
     "emailQueue",
@@ -21,12 +21,23 @@ const worker = new Worker(
                     .update({
                         status: "completed",
                     });
+                const { data, error } = await resend.emails.send({
+                    from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}>`,
+                    to: [job.data.email],
+                    subject: `Task Scheduled for - ${job.data.title}`,
+                    html: `
+                        <h1>Task- ${job.data.title}</h1>
+                        <p>Task completed successfully</p>
+                        <p>Best regards,<br/>The Team</p>
+                    `
+                })
+
+                if (error) {
+                    console.error("Error sending completed task email:", error)
+                    throw error;
+                }
                 console.log(`✅ Marked task_history ${job.data.taskHistoryId} as completed`);
             }
-
-            // Send email (your actual work)
-            console.log(`📧 Sending email to ${job.data.email}`);
-            // await sendEmail(job.data.email, ...);
 
             // Fetch task details
             const jobDoc = await dbClient
@@ -146,6 +157,21 @@ const worker = new Worker(
                         jobId: `task-${job.data.jobId}-${nextExecutionTime.getTime()}`
                     }
                 );
+                const { data, error } = await resend.emails.send({
+                    from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}>`,
+                    to: [job.data.email],
+                    subject: `Task Scheduled for - ${job.data.title}`,
+                    html: `
+                        <h1>Task- ${job.data.title}</h1>
+                        <p>Task completed successfully</p>
+                        <p>Best regards,<br/>The Team</p>
+                    `
+                })
+
+                if (error) {
+                    console.error("Error sending completed task email:", error)
+                    throw error;
+                }
 
                 console.log(`⏰ Next execution scheduled for ${nextExecutionTime.toISOString()}`);
 

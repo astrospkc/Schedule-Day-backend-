@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
         .createTable("users", function (table) {
             table.increments();
             table.string("name")
-            table.string("email")
+            table.string("email").unique()
             table.string("password")
             table.timestamps(true, true)
         })
@@ -31,6 +31,7 @@ export async function up(knex: Knex): Promise<void> {
             table.dateTime("scheduled_for")
             table.timestamps(true, true) // scheduled_for -> field insert later
         })
+
 }
 
 

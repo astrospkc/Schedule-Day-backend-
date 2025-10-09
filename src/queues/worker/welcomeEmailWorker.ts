@@ -2,7 +2,7 @@ import { Worker } from 'bullmq';
 import redisConnection from '../../db/redisConnection.js';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const resend = new Resend(process.env.RESEND_API_KEY);
 
 const welcomeEmailWorker = new Worker(
     "welcomeEmailQueue",
@@ -11,7 +11,7 @@ const welcomeEmailWorker = new Worker(
 
         try {
             const { data, error } = await resend.emails.send({
-                from: 'DayMeetingScheduler <noreply@xastrosbuild.site>', // Make sure this domain is verified in your Resend dashboard
+                from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}>`, // Make sure this domain is verified in your Resend dashboard
                 to: [job.data.email],
                 subject: 'Welcome to Our App!',
                 html: `
