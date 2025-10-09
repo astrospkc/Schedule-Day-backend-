@@ -19,11 +19,19 @@ interface Task {
 }
 const router = express.Router()
 
+const checkTask = async (userId: number, startDate: Date, endDate: Date) => {
+    const tasks = await dbClient("tasks").where({ user_id: userId, start_date: startDate, end_date: endDate })
+    if (tasks.length > 0) {
+        return true
+    }
+    return false
+}
 
+// constraint: can create only one task at a time
 const createTask = async (req: express.Request, res: express.Response) => {
     try {
         const { title, start_date, end_date, recurrence_day, custom_days }: Task = req.body;
-
+        const userId = req.user.id
         // Convert dates from string → Date object
         let startDate
         if (new Date(start_date) <= new Date() == true) {
@@ -32,6 +40,11 @@ const createTask = async (req: express.Request, res: express.Response) => {
         startDate = new Date(start_date);
         const endDate = new Date(end_date);
         console.log("start date and end date: ", startDate, "  ", endDate)
+
+        // get all the task and check whether it matches the start time and end time, if yes , return error else pass
+        if (await checkTask(userId, startDate, endDate)) {
+            return res.status(400).send("You already have a task at this time");
+        }
 
         let nextExecutionTime: Date | null = null;
         let isRecurring = false;
@@ -97,10 +110,13 @@ const createTask = async (req: express.Request, res: express.Response) => {
             startDate: startDate,
             taskHistoryId: createdTask.id
         },
+
             {
                 delay: Math.max(0, delayMs),
-                jobId: `task-${createdTask.id}-${startDate.getTime()}`
-            });
+                jobId: `task-${createdTask.id}-${startDate.getTime()}`,
+                removeOnComplete: true, removeOnFail: true
+            },
+        );
         await dbClient("task_history").insert({
             task_id: createdTask.id,
             status: "pending",
@@ -108,21 +124,28 @@ const createTask = async (req: express.Request, res: express.Response) => {
         })
 
         // sending an email for scheduling a task
-        const { data, error } = await resend.emails.send({
-            from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}>`,
-            to: [req.user.email],
-            subject: `Task Scheduled for - ${title}`,
-            html: `
-                <h1>Task Scheduled for - ${title}</h1>
-                <p>Task scheduled successfully</p>
-                <p>Task will be executed at ${startDate}</p>
-                <p>Best regards,<br/>The Team</p>
-            `
-        })
+        const userEmail = req.user?.email;
 
-        if (error) {
-            console.error("Error sending scheduling task email:", error)
-            throw error;
+        if (!userEmail) {
+            console.warn("User email is not available. Skipping email notification.");
+        } else {
+            const { data, error } = await resend.emails.send({
+                from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}>`,
+                to: [userEmail],
+                subject: `Task Scheduled for - ${title}`,
+                html: `
+                    <h1>Task Scheduled for - ${title}</h1>
+                    <p>Task scheduled successfully</p>
+                    <p>Task will be executed at ${startDate}</p>
+                    <p>Best regards,<br/>The Team</p>
+                `
+            });
+
+            if (error) {
+                console.error("Error sending scheduling task email:", error);
+                // Don't throw the error to prevent task creation from failing
+                // Just log it and continue
+            }
         }
 
 
@@ -156,7 +179,72 @@ const GetAllJobInfo = async (req: express.Request, res: express.Response) => {
     }
 }
 
+
+// delete in such a way - it deleted the task as well as the job in the queue
+const deleteTask = async (req: express.Request, res: express.Response) => {
+    try {
+        const taskId = req.params.task_id
+        const task = await dbClient("tasks").where({ id: taskId }).select("*").first()
+        if (!task) {
+            return res.status(404).send("Task not found")
+        }
+        const taskHistory_delete = await dbClient("task_history").where({ task_id: taskId }).delete().returning("*")
+        console.log("task history deletion: ", taskHistory_delete)
+        const task_delete = await dbClient("tasks").where({ id: taskId }).del().returning("*")
+        console.log("task deletion: ", task_delete)
+
+        // now delete it from queue
+        const result = await emailQueue.removeJobScheduler(taskId)
+        console.log("result", result)
+        // if removed , now send email that this task has been deleted
+        if (result) {
+            const { data, error } = await resend.emails.send({
+                from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}`,
+                to: [req.user.email],
+                subject: `Task Deleted - ${task.title}`,
+                html: `
+            <h1>Task Deleted</h1>
+            <p>Task deleted successfully</p>
+            <p>Best regards,<br/>The Team</p>
+            `
+            })
+            if (error) {
+                console.error("Error sending email after deleting task")
+            }
+        }
+        return res.status(200).send("Task deleted successfully")
+
+
+    } catch (error) {
+        console.error("Error deleting task")
+        return res.status(500).send("Internal error occurred while deleting task")
+    }
+}
+
+const updateTask = async (req: express.Request, res: express.Response) => {
+    try {
+        const taskId = req.params.task_id
+
+    } catch (error) {
+        console.error("Error while updating task")
+        return res.status(500).send("Internal error occurred while updating task")
+    }
+}
+
+const deleteAllJobs = async (req: express.Request, res: express.Response) => {
+    try {
+        await emailQueue.obliterate()
+        res.status(200).send("All jobs deleted successfully")
+    } catch (error) {
+        console.error("Error deleting all jobs")
+        return res.status(500).send("Internal error occurred while deleting all jobs")
+    }
+}
+
 router.post("/createtask", fetchuser, createTask)
 router.get("/jobInfo", fetchuser, GetAllJobInfo)
+router.delete("/deletetask/:task_id", fetchuser, deleteTask)
+router.put("/updatetask/:task_id", fetchuser, updateTask)
+router.delete("/deleteAllJobs", fetchuser, deleteAllJobs)
 
 export default router

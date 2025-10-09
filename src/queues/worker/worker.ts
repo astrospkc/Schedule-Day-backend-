@@ -24,7 +24,7 @@ const worker = new Worker(
                 const { data, error } = await resend.emails.send({
                     from: `DayMeetingScheduler <noreply@${process.env.EMAIL_DOMAIN}>`,
                     to: [job.data.email],
-                    subject: `Task Scheduled for - ${job.data.title}`,
+                    subject: `Task Scheduled for - ${job.data.title} is completed`,
                     html: `
                         <h1>Task- ${job.data.title}</h1>
                         <p>Task completed successfully</p>
@@ -154,7 +154,8 @@ const worker = new Worker(
                     },
                     {
                         delay: Math.max(0, delayMs),
-                        jobId: `task-${job.data.jobId}-${nextExecutionTime.getTime()}`
+                        jobId: `task-${job.data.jobId}-${nextExecutionTime.getTime()}`,
+                        removeOnComplete: true, removeOnFail: true
                     }
                 );
                 const { data, error } = await resend.emails.send({
