@@ -8,6 +8,7 @@
     "dev": "nodemon --watch src --exec tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/src/index.js",
+    "worker:start":"node  dist/src/queues/worker/worker.js",
     "migrate:make": " tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:make -x ts",
     "migrate": "npx ts-node knex migrate:latest --knexfile knexfile.ts",
     "migrate:latest": "tsx ./node_modules/.bin/knex  --knexfile knexfile.ts migrate:latest ",
