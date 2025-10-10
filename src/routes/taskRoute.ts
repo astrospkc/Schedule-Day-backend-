@@ -1,11 +1,11 @@
 import express from "express"
-import dbClient from "../db/index.ts"
-import { emailQueue } from "../queues/queues.ts"
-import fetchuser from "../middleware/authmiddlleware.ts"
-import { create } from "domain"
+import dbClient from "../db/index.js"
+import { emailQueue } from "../queues/queues.js"
+import fetchuser from "../middleware/authmiddlleware.js"
+
 
 // 2025 -09 - 22 16: 47: 34.064941 +00
-import { resend } from "../queues/worker/welcomeEmailWorker.ts"
+import { resend } from "../queues/worker/welcomeEmailWorker.js"
 
 interface Task {
     title: string

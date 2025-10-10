@@ -1,11 +1,11 @@
 // import { emailQueue } from './../queues.ts';
 import { Worker } from 'bullmq';
-import redisConnection from '../../db/redisConnection.ts';
-import dbClient from '../../db/index.ts';
-import { emailQueue } from '../queues.ts';
+import redisConnection from '../../db/redisConnection.js';
+import dbClient from '../../db/index.js';
+import { emailQueue } from '../queues.js';
 import { welcomeEmailWorkerInstance } from './welcomeEmailWorker.js';
 // import dbClient from '../../db/index.ts';
-import { resend } from "../worker/welcomeEmailWorker.ts"
+import { resend } from "../worker/welcomeEmailWorker.js"
 // Create a new connection in every instance
 const worker = new Worker(
     "emailQueue",

@@ -40,13 +40,7 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    // "ts-node": {
-    //   "compilerOptions": {
-    //     "type": "module"
-    //   }
-    // },
+    "noEmit": false,
     // "files": [
     //   "**/*.ts",
     //   "**/*.tsx"
@@ -54,5 +48,13 @@
     // "exclude": [
     //   "node_modules"
     // ]
-  }
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "type": "module"
+    }
+  },
+  "include": [
+    "src"
+  ]
 }

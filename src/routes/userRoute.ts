@@ -3,9 +3,9 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import fetchuser from "../middleware/authmiddlleware.ts";
-import dbClient from "../db/index.ts";
-import { welcomeEmailQueue } from "../queues/queues.ts";
+import fetchuser from "../middleware/authmiddlleware.js";
+import dbClient from "../db/index.js";
+import { welcomeEmailQueue } from "../queues/queues.js";
 
 
 const router = express.Router();

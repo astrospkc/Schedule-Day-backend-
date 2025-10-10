@@ -1,7 +1,7 @@
 import express from "express"
 import dotenv from "dotenv";
-import userRouter from "./routes/userRoute.ts"
-import taskRouter from "./routes/taskRoute.ts"
+import userRouter from "./routes/userRoute.js"
+import taskRouter from "./routes/taskRoute.js"
 import cors from "cors"
 import type { CorsOptions } from "cors"
 
