@@ -194,7 +194,7 @@ const worker = new Worker(
                     .where({ id: job.data.taskHistoryId })
                     .update({
                         status: "failed",
-                        error_message: error.message,
+                        error_message: error instanceof Error ? error.message : String(error),
                         failed_at: new Date()
                     });
             }

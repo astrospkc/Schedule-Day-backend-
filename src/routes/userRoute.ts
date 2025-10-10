@@ -64,7 +64,8 @@ const register = async (req: express.Request, res: express.Response) => {
 
         res.json({ success, authtoken });
     } catch (error) {
-        console.error(error.message);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        console.error(errorMessage);
         res.status(500).send("Internal error occurred");
     }
 }
@@ -103,14 +104,14 @@ const login = async (req: express.Request, res: express.Response) => {
         res.json({ success, authtoken });
         // }
     } catch (error) {
-        console.log("error: ", error)
-        console.error(error.message);
-        res.status(500).send("Internal error occurred", error.message);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        console.error(errorMessage);
+        res.status(500).send("Internal error occurred");
     }
 }
 
 
-const getUserInfo = async (req, res) => {
+const getUserInfo = async (req: express.Request, res: express.Response) => {
     try {
         const user_id = req.user.id;
         const user = await dbClient.select("*").from("users").where({ id: user_id });

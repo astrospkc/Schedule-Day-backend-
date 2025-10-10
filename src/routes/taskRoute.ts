@@ -173,7 +173,7 @@ const GetAllJobInfo = async (req: express.Request, res: express.Response) => {
         console.log('Failed:', failedJobs.length);
         console.log('Delayed:', delayedJobs.length);
         res.status(200).json({ waitingJobs, activeJobs, completedJobs, failedJobs, delayedJobs });
-    } catch {
+    } catch (error) {
         console.error("Error creating task:", error);
         return res.status(500).send("Internal error occurred");
     }
@@ -194,7 +194,7 @@ const deleteTask = async (req: express.Request, res: express.Response) => {
         console.log("task deletion: ", task_delete)
 
         // now delete it from queue
-        const result = await emailQueue.removeJobScheduler(taskId)
+        const result = await emailQueue.removeJobScheduler(taskId || "")
         console.log("result", result)
         // if removed , now send email that this task has been deleted
         if (result) {
