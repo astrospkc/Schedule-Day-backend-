@@ -6,7 +6,9 @@ const env = process.env.NODE_ENV || 'local'
 dotenv.config({ path: `.env.${env}` });
 
 // Use REDIS_URI from environment variables or fallback to default localhost
-const redisUri = process.env.AIVEN_SERVICE_URI || 'redis://localhost:6379';
+const redisUri = process.env.AIVEN_SERVICE_URI || "";
+
+// console.log("redisUri: ", redisUri)
 
 const redisConnection = new Redis(redisUri, {
     maxRetriesPerRequest: null,
