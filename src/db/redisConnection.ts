@@ -20,7 +20,7 @@ redisConnection.on('error', (err) => {
 });
 
 redisConnection.on('connect', () => {
-    console.log('Connected to Redis');
+    console.log('Connected to Redis also redisuri', redisUri);
 });
 
 export default redisConnection;
