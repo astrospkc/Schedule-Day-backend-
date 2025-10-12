@@ -1,4 +1,5 @@
 // import { emailQueue } from './../queues.ts';
+import express from "express";
 import { Worker } from 'bullmq';
 import redisConnection from '../../db/redisConnection.js';
 import dbClient from '../../db/index.js';
@@ -7,8 +8,9 @@ import { welcomeEmailWorkerInstance } from './welcomeEmailWorker.js';
 // import dbClient from '../../db/index.ts';
 import { resend } from "../worker/welcomeEmailWorker.js";
 import dotenv from 'dotenv';
-const env = process.env.NODE_ENV || 'local';
-dotenv.config({ path: `.env.${env}` });
+dotenv.config();
+const app = express();
+app.use(express.json());
 // Create a new connection in every instance
 const worker = new Worker("emailQueue", async (job) => {
     console.log(`Processing email job for ${job.data.email}`);
@@ -194,6 +196,10 @@ worker.on("failed", (job, err) => {
             }
         })();
     }
+});
+const PORT = 8000;
+app.listen(PORT, () => {
+    console.log("worker is running ");
 });
 // The welcome email worker is automatically started when imported
 // No need to call .run() as BullMQ workers start automatically
