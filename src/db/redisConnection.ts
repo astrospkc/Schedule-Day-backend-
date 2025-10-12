@@ -4,7 +4,7 @@ dotenv.config();
 
 // Use REDIS_URI from environment variables or fallback to default localhost
 const redisUri = process.env.AIVEN_SERVICE_URI || "";
-console.log("redisurl: ", redisUri)
+
 
 // console.log("redisUri: ", redisUri)
 
@@ -20,7 +20,7 @@ redisConnection.on('error', (err) => {
 });
 
 redisConnection.on('connect', () => {
-    console.log('Connected to Redis also redisuri', redisUri);
+    console.log('Connected to Redis also redisuri');
 });
 
 export default redisConnection;
