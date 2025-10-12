@@ -1,7 +1,8 @@
 import express from 'express';
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-dotenv.config()
+const env = process.env.NODE_ENV || 'local';
+dotenv.config({ path: `.env.${env}` });
 const JWT_secret = process.env.JWT_TOKEN || "";
 // console.log("jwt secret: ", JWT_secret);
 const fetchuser = async (req, res, next) => {
