@@ -7,6 +7,7 @@ dotenv.config({ path: `.env.${env}` });
 
 // Use REDIS_URI from environment variables or fallback to default localhost
 const redisUri = process.env.AIVEN_SERVICE_URI || "";
+console.log("redisurl: ", redisUri)
 
 // console.log("redisUri: ", redisUri)
 
