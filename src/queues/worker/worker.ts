@@ -7,7 +7,6 @@ import { welcomeEmailWorkerInstance } from './welcomeEmailWorker.js';
 // import dbClient from '../../db/index.ts';
 import { resend } from "../worker/welcomeEmailWorker.js"
 import dotenv from 'dotenv';
-
 const env = process.env.NODE_ENV || 'local'
 
 dotenv.config({ path: `.env.${env}` });

@@ -1,7 +1,6 @@
 import { Redis } from 'ioredis';
 import dotenv from 'dotenv';
-const env = process.env.NODE_ENV || 'local';
-dotenv.config({ path: `.env.${env}` });
+dotenv.config();
 // Use REDIS_URI from environment variables or fallback to default localhost
 const redisUri = process.env.AIVEN_SERVICE_URI || "";
 // console.log("redisUri: ", redisUri)

@@ -5,9 +5,8 @@ import taskRouter from "./routes/taskRoute.js"
 import cors from "cors"
 import type { CorsOptions } from "cors"
 
-const env = process.env.NODE_ENV || 'local'
 
-dotenv.config({ path: `.env.${env}` });
+dotenv.config();
 
 const date = new Date();
 const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));

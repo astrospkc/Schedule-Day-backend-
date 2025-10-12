@@ -1,9 +1,7 @@
 import "dotenv/config";
 import dotenv from "dotenv";
 import type { Knex } from "knex";
-
-const env = process.env.NODE_ENV || 'local';
-dotenv.config({ path: `.env.${env}` });
+dotenv.config();
 
 // Ensure DB_CONNECTION_URL is defined
 if (!process.env.DB_CONNECTION_URL) {
