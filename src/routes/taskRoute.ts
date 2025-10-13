@@ -260,9 +260,7 @@ const getAllCompletedTask = async (req: express.Request, res: express.Response) 
             .andWhere("tasks.user_id", userId)
             .select(
                 "task_history.*",
-                "tasks.title",
-                "tasks.start_date",
-                "tasks.end_date"
+                "tasks.*"
             );
         res.status(200).json({ data })
     } catch (error) {
@@ -280,9 +278,7 @@ const getAllPendingTask = async (req: express.Request, res: express.Response) =>
             .andWhere("tasks.user_id", userId)
             .select(
                 "task_history.*",
-                "tasks.title",
-                "tasks.start_date",
-                "tasks.end_date"
+                "tasks.*"
             );
         res.status(200).json({ data })
     } catch (error) {
