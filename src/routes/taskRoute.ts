@@ -254,7 +254,7 @@ const getAllTask = async (req: express.Request, res: express.Response) => {
 const getAllCompletedTask = async (req: express.Request, res: express.Response) => {
     try {
         const userId = req.user.id
-        const completedTasks = await dbClient("task_history")
+        const data = await dbClient("task_history")
             .join("tasks", "task_history.task_id", "=", "tasks.id")
             .where("task_history.status", "completed")
             .andWhere("tasks.user_id", userId)
@@ -264,7 +264,7 @@ const getAllCompletedTask = async (req: express.Request, res: express.Response) 
                 "tasks.start_date",
                 "tasks.end_date"
             );
-        res.status(200).json({ completedTasks })
+        res.status(200).json({ data })
     } catch (error) {
         console.error("Error while fetching all completed tasks")
         return res.status(500).send("Internal error occurred while fetching all completed tasks")
@@ -274,7 +274,7 @@ const getAllCompletedTask = async (req: express.Request, res: express.Response) 
 const getAllPendingTask = async (req: express.Request, res: express.Response) => {
     try {
         const userId = req.user.id
-        const pendingTasks = await dbClient("task_history")
+        const data = await dbClient("task_history")
             .join("tasks", "task_history.task_id", "=", "tasks.id")
             .where("task_history.status", "pending")
             .andWhere("tasks.user_id", userId)
@@ -284,10 +284,29 @@ const getAllPendingTask = async (req: express.Request, res: express.Response) =>
                 "tasks.start_date",
                 "tasks.end_date"
             );
-        res.status(200).json({ pendingTasks })
+        res.status(200).json({ data })
     } catch (error) {
         console.error("Error while fetching all pending tasks")
         return res.status(500).send("Internal error occurred while fetching all pending tasks")
+    }
+}
+
+const getAllUpcomingTask = async (req: express.Request, res: express.Response) => {
+    try {
+        const userId = req.user.id
+        console.log("userId: ", userId)
+        const date = new Date()
+        const data = await dbClient("tasks")
+            .where("tasks.next_execution_time", ">", date)
+            .andWhere("tasks.user_id", userId)
+            .select(
+                "*"
+            );
+        // console.log("upcomingTasks: ", upcomingTasks)
+        res.status(200).json({ data })
+    } catch (error) {
+        console.error("Error while fetching all upcoming tasks")
+        return res.status(500).send("Internal error occurred while fetching all upcoming tasks")
     }
 }
 
@@ -298,6 +317,7 @@ router.put("/updatetask/:task_id", fetchuser, updateTask)
 router.delete("/deleteAllJobs", fetchuser, deleteAllJobs)
 router.get("/completedTasks", fetchuser, getAllCompletedTask)
 router.get("/pendingTasks", fetchuser, getAllPendingTask)
+router.get("/upcomingTasks", fetchuser, getAllUpcomingTask)
 router.get("/gettasks", fetchuser, getAllTask)
 
 export default router
