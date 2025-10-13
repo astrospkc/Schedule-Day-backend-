@@ -241,10 +241,52 @@ const deleteAllJobs = async (req: express.Request, res: express.Response) => {
     }
 }
 
+const getAllCompletedTask = async (req: express.Request, res: express.Response) => {
+    try {
+        const userId = req.user.id
+        const completedTasks = await dbClient("task_history")
+            .join("tasks", "task_history.task_id", "=", "tasks.id")
+            .where("task_history.status", "completed")
+            .andWhere("tasks.user_id", userId)
+            .select(
+                "task_history.*",
+                "tasks.title",
+                "tasks.start_date",
+                "tasks.end_date"
+            );
+        res.status(200).json({ completedTasks })
+    } catch (error) {
+        console.error("Error while fetching all completed tasks")
+        return res.status(500).send("Internal error occurred while fetching all completed tasks")
+    }
+}
+
+const getAllPendingTask = async (req: express.Request, res: express.Response) => {
+    try {
+        const userId = req.user.id
+        const pendingTasks = await dbClient("task_history")
+            .join("tasks", "task_history.task_id", "=", "tasks.id")
+            .where("task_history.status", "pending")
+            .andWhere("tasks.user_id", userId)
+            .select(
+                "task_history.*",
+                "tasks.title",
+                "tasks.start_date",
+                "tasks.end_date"
+            );
+        res.status(200).json({ pendingTasks })
+    } catch (error) {
+        console.error("Error while fetching all pending tasks")
+        return res.status(500).send("Internal error occurred while fetching all pending tasks")
+    }
+}
+
 router.post("/createtask", fetchuser, createTask)
 router.get("/jobInfo", fetchuser, GetAllJobInfo)
 router.delete("/deletetask/:task_id", fetchuser, deleteTask)
 router.put("/updatetask/:task_id", fetchuser, updateTask)
 router.delete("/deleteAllJobs", fetchuser, deleteAllJobs)
+router.get("/completedTasks", fetchuser, getAllCompletedTask)
+router.get("/pendingTasks", fetchuser, getAllPendingTask)
 
 export default router
