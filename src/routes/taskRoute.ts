@@ -243,8 +243,8 @@ const deleteAllJobs = async (req: express.Request, res: express.Response) => {
 const getAllTask = async (req: express.Request, res: express.Response) => {
     try {
         const userId = req.user.id
-        const tasks = await dbClient("tasks").where("user_id", userId).select("*")
-        res.status(200).json({ tasks })
+        const data = await dbClient("tasks").where("user_id", userId).select("*")
+        res.status(200).json({ data })
     } catch (error) {
         console.error("Error fetching all tasks")
         return res.status(500).send("Internal error occurred while fetching all tasks")
