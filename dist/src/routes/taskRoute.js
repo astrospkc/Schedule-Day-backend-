@@ -203,8 +203,8 @@ const deleteAllJobs = async (req, res) => {
 const getAllTask = async (req, res) => {
     try {
         const userId = req.user.id;
-        const tasks = await dbClient("tasks").where("user_id", userId).select("*");
-        res.status(200).json({ tasks });
+        const data = await dbClient("tasks").where("user_id", userId).select("*");
+        res.status(200).json({ data });
     }
     catch (error) {
         console.error("Error fetching all tasks");
@@ -218,7 +218,7 @@ const getAllCompletedTask = async (req, res) => {
             .join("tasks", "task_history.task_id", "=", "tasks.id")
             .where("task_history.status", "completed")
             .andWhere("tasks.user_id", userId)
-            .select("task_history.*", "tasks.title", "tasks.start_date", "tasks.end_date");
+            .select("task_history.*", "tasks.*");
         res.status(200).json({ data });
     }
     catch (error) {
@@ -233,7 +233,7 @@ const getAllPendingTask = async (req, res) => {
             .join("tasks", "task_history.task_id", "=", "tasks.id")
             .where("task_history.status", "pending")
             .andWhere("tasks.user_id", userId)
-            .select("task_history.*", "tasks.title", "tasks.start_date", "tasks.end_date");
+            .select("task_history.*", "tasks.*");
         res.status(200).json({ data });
     }
     catch (error) {
