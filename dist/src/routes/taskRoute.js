@@ -200,6 +200,17 @@ const deleteAllJobs = async (req, res) => {
         return res.status(500).send("Internal error occurred while deleting all jobs");
     }
 };
+const getAllTask = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const tasks = await dbClient("tasks").where("user_id", userId).select("*");
+        res.status(200).json({ tasks });
+    }
+    catch (error) {
+        console.error("Error fetching all tasks");
+        return res.status(500).send("Internal error occurred while fetching all tasks");
+    }
+};
 const getAllCompletedTask = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -237,5 +248,6 @@ router.put("/updatetask/:task_id", fetchuser, updateTask);
 router.delete("/deleteAllJobs", fetchuser, deleteAllJobs);
 router.get("/completedTasks", fetchuser, getAllCompletedTask);
 router.get("/pendingTasks", fetchuser, getAllPendingTask);
+router.get("/tasks", fetchuser, getAllTask);
 export default router;
 //# sourceMappingURL=taskRoute.js.map
