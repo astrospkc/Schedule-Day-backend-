@@ -298,6 +298,6 @@ router.put("/updatetask/:task_id", fetchuser, updateTask)
 router.delete("/deleteAllJobs", fetchuser, deleteAllJobs)
 router.get("/completedTasks", fetchuser, getAllCompletedTask)
 router.get("/pendingTasks", fetchuser, getAllPendingTask)
-router.get("/tasks", fetchuser, getAllTask)
+router.get("/gettasks", fetchuser, getAllTask)
 
 export default router
